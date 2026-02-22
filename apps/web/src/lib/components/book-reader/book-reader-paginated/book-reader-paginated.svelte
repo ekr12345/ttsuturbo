@@ -633,24 +633,22 @@
       $skipKeyDownListener$ ||
       ev.altKey ||
       ev.ctrlKey ||
-      ev.shiftKey ||
       ev.metaKey ||
       ev.repeat
     )
       return;
-    switch (ev.code) {
-      case 'ArrowLeft':
-      case 'KeyA':
-        concretePageManager[verticalMode ? 'nextPage' : 'prevPage']();
-        break;
-      case 'ArrowRight':
-      case 'KeyD':
-        concretePageManager[verticalMode ? 'prevPage' : 'nextPage']();
-        break;
-      case 'ArrowUp':
+
+    if (ev.shiftKey) {
+      if (ev.code === 'Space') {
+        ev.preventDefault();
         concretePageManager.prevPage();
-        break;
-      case 'ArrowDown':
+      }
+      return;
+    }
+
+    switch (ev.code) {
+      case 'Space':
+        ev.preventDefault();
         concretePageManager.nextPage();
         break;
       default:
