@@ -760,7 +760,7 @@
       --book-content-child-column-width,
       auto
     ); // required for WebKit + column-count 1
-    column-gap: 40px;
+    column-gap: 75px;
     column-fill: auto;
     height: var(--book-content-child-height, 95vh);
 

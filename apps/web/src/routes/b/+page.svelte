@@ -170,7 +170,12 @@
     getWeightedAverage
   } from '$lib/functions/utils';
   import { onKeydownReader } from './on-keydown-reader';
-  import { getCharTokens, findNearestToken, type CharToken } from './word-navigator';
+  import {
+    getCharTokens,
+    findNearestToken,
+    findFirstVisibleToken,
+    type CharToken
+  } from './word-navigator';
   import { onDestroy, onMount, tick } from 'svelte';
   import JishoPopup from '$lib/components/jisho-popup/jisho-popup.svelte';
   import Fa from 'svelte-fa';
@@ -566,7 +571,7 @@
     document.addEventListener('ttu-action', handleAction, false);
     document.addEventListener('pointerup', handleJishoLookup, false);
     document.addEventListener('mousemove', handleMouseMove, { passive: true });
-    document.addEventListener(PAGE_CHANGE, clearWordCursor, false);
+    document.addEventListener(PAGE_CHANGE, handlePageChange, false);
   });
 
   function handleAction({ detail }: any) {
@@ -640,7 +645,10 @@
       if (!container) return;
       wordTokens = getCharTokens(container);
       if (wordTokens.length === 0) return;
-      wordCursorIndex = findNearestToken(wordTokens, lastMouseX, lastMouseY);
+      wordCursorIndex = pageJustChanged
+        ? findFirstVisibleToken(wordTokens)
+        : findNearestToken(wordTokens, lastMouseX, lastMouseY);
+      pageJustChanged = false;
       anchorIndex = -1;
     } else {
       if (extend && anchorIndex === -1) anchorIndex = wordCursorIndex;
@@ -686,6 +694,13 @@
     showJisho = false;
   }
 
+  let pageJustChanged = false;
+
+  function handlePageChange() {
+    clearWordCursor();
+    pageJustChanged = true;
+  }
+
   /** Experimental Code - May be removed any time without warning */
 
   onDestroy(() => {
@@ -693,7 +708,7 @@
       document.removeEventListener('ttu-action', handleAction, false);
       document.removeEventListener('pointerup', handleJishoLookup, false);
       document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener(PAGE_CHANGE, clearWordCursor, false);
+      document.removeEventListener(PAGE_CHANGE, handlePageChange, false);
       document.documentElement.lang = 'ja';
     }
 
@@ -1242,6 +1257,16 @@
 
     if (ev.key === 'Enter' && wordCursorIndex >= 0 && !showJisho) {
       handleJishoLookup();
+      return;
+    }
+
+    if (ev.key === 'f' && !ev.altKey && !ev.ctrlKey && !ev.metaKey && !showJisho) {
+      onFullscreenClick();
+      return;
+    }
+
+    if (ev.key === 's' && !ev.altKey && !ev.ctrlKey && !ev.metaKey && !showJisho) {
+      leaveReader(mergeEntries.SETTINGS.routeId, false);
       return;
     }
 

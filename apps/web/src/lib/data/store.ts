@@ -75,7 +75,7 @@ export const fontFamilyGroupTwo$ = writableStringLocalStorageSubject()(
   'fontFamilyGroupTwo',
   'Noto Sans JP'
 );
-export const fontSize$ = writableNumberLocalStorageSubject()('fontSize', 20);
+export const fontSize$ = writableNumberLocalStorageSubject()('fontSize', 70);
 export const lineHeight$ = writableNumberLocalStorageSubject()('lineHeight', 1.65);
 export const textIndentation$ = writableNumberLocalStorageSubject()('textIndentation', 0);
 export const textMarginValue$ = writableNumberLocalStorageSubject()('textMarginValue', 0);
@@ -91,7 +91,7 @@ export const furiganaStyle$ = writableStringLocalStorageSubject<FuriganaStyle>()
 );
 export const writingMode$ = writableStringLocalStorageSubject<WritingMode>()(
   'writingMode',
-  'vertical-rl'
+  'horizontal-tb'
 );
 export const enableVerticalFontKerning$ = writableBooleanLocalStorageSubject()(
   'enableVerticalFontKerning',
@@ -143,7 +143,10 @@ export const secondDimensionMaxValue$ = writableNumberLocalStorageSubject()(
   'secondDimensionMaxValue',
   0
 );
-export const firstDimensionMargin$ = writableNumberLocalStorageSubject()('firstDimensionMargin', 0);
+export const firstDimensionMargin$ = writableNumberLocalStorageSubject()(
+  'firstDimensionMargin',
+  93
+);
 
 export const swipeThreshold$ = writableNumberLocalStorageSubject()('swipeThreshold', 10);
 
