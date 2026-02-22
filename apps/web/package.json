@@ -48,7 +48,6 @@
     "svelte-fa": "4.0.4",
     "svelte-gestures": "5.0.7",
     "svelte-meta-tags": "3.1.4",
-    "tiny-segmenter": "^0.2.0",
     "ua-parser-js": "2.0.9"
   }
 }

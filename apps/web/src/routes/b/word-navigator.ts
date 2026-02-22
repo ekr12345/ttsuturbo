@@ -4,15 +4,13 @@
  * All rights reserved.
  */
 
-import { segmentJapanese } from '$lib/functions/kuromoji-service';
-
-export interface WordToken {
+export interface CharToken {
   text: string;
   range: Range;
 }
 
-export function getWordTokens(container: Element): WordToken[] {
-  const tokens: WordToken[] = [];
+export function getCharTokens(container: Element): CharToken[] {
+  const tokens: CharToken[] = [];
 
   const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
@@ -28,25 +26,20 @@ export function getWordTokens(container: Element): WordToken[] {
   let node: Text | null;
   while ((node = walker.nextNode() as Text | null)) {
     const text = node.textContent || '';
-    if (!text.trim()) continue;
-
-    const segments = segmentJapanese(text);
-    let offset = 0;
-    for (const seg of segments) {
-      if (seg.trim()) {
-        const range = document.createRange();
-        range.setStart(node, offset);
-        range.setEnd(node, offset + seg.length);
-        tokens.push({ text: seg, range });
-      }
-      offset += seg.length;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (!ch.trim()) continue;
+      const range = document.createRange();
+      range.setStart(node, i);
+      range.setEnd(node, i + 1);
+      tokens.push({ text: ch, range });
     }
   }
 
   return tokens;
 }
 
-export function findNearestToken(tokens: WordToken[], x: number, y: number): number {
+export function findNearestToken(tokens: CharToken[], x: number, y: number): number {
   let nearest = 0;
   let minDist = Infinity;
 
