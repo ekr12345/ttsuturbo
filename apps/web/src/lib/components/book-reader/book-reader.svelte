@@ -275,7 +275,7 @@
     The reader is currently blurred due to an external application (e. g. exstatic)
   </div>
 {/if}
-<div bind:this={$containerEl$} class="{pxReader} py-8">
+<div bind:this={$containerEl$} class="{pxReader} py-8" data-reader-content>
   {#if viewMode === ViewMode.Continuous}
     <BookReaderContinuous
       {htmlContent}

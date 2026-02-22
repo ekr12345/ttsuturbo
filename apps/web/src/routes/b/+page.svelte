@@ -170,6 +170,7 @@
     getWeightedAverage
   } from '$lib/functions/utils';
   import { onKeydownReader } from './on-keydown-reader';
+  import { getWordTokens, findNearestToken, type WordToken } from './word-navigator';
   import { onDestroy, onMount, tick } from 'svelte';
   import JishoPopup from '$lib/components/jisho-popup/jisho-popup.svelte';
   import Fa from 'svelte-fa';
@@ -226,6 +227,10 @@
   let jishoWord = '';
   let jishoX = 0;
   let jishoY = 0;
+  let wordTokens: WordToken[] = [];
+  let wordCursorIndex = -1;
+  let lastMouseX = 0;
+  let lastMouseY = 0;
 
   const syncedPromise = new Promise<void>((resolver) => {
     syncedResolver = resolver;
@@ -558,6 +563,7 @@
   onMount(() => {
     document.addEventListener('ttu-action', handleAction, false);
     document.addEventListener('pointerup', handleJishoLookup, false);
+    document.addEventListener('mousemove', handleMouseMove, { passive: true });
   });
 
   function handleAction({ detail }: any) {
@@ -597,12 +603,42 @@
     }
   }
 
+  function handleMouseMove(ev: MouseEvent) {
+    lastMouseX = ev.clientX;
+    lastMouseY = ev.clientY;
+  }
+
+  function navigateWord(direction: 1 | -1) {
+    if (wordCursorIndex === -1) {
+      const container = document.querySelector('[data-reader-content]');
+      if (!container) return;
+      wordTokens = getWordTokens(container);
+      if (wordTokens.length === 0) return;
+      wordCursorIndex = findNearestToken(wordTokens, lastMouseX, lastMouseY);
+    } else {
+      wordCursorIndex = Math.max(0, Math.min(wordTokens.length - 1, wordCursorIndex + direction));
+    }
+    const sel = window.getSelection();
+    if (sel) {
+      sel.removeAllRanges();
+      sel.addRange(wordTokens[wordCursorIndex].range.cloneRange());
+    }
+  }
+
+  function clearWordCursor() {
+    wordTokens = [];
+    wordCursorIndex = -1;
+    window.getSelection()?.removeAllRanges();
+    showJisho = false;
+  }
+
   /** Experimental Code - May be removed any time without warning */
 
   onDestroy(() => {
     if (browser) {
       document.removeEventListener('ttu-action', handleAction, false);
       document.removeEventListener('pointerup', handleJishoLookup, false);
+      document.removeEventListener('mousemove', handleMouseMove);
       document.documentElement.lang = 'ja';
     }
 
@@ -1120,6 +1156,24 @@
   }
 
   function onKeydown(ev: KeyboardEvent) {
+    if (ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey && !ev.repeat) {
+      if (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') {
+        ev.preventDefault();
+        navigateWord(ev.key === 'ArrowRight' ? 1 : -1);
+        return;
+      }
+    }
+
+    if (ev.key === 'Escape' && (wordCursorIndex >= 0 || showJisho)) {
+      clearWordCursor();
+      return;
+    }
+
+    if (ev.key === 'Enter' && wordCursorIndex >= 0 && !showJisho) {
+      handleJishoLookup();
+      return;
+    }
+
     if (
       $skipKeyDownListener$ ||
       ev.altKey ||
@@ -1147,6 +1201,9 @@
     );
 
     if (!result) return;
+
+    wordTokens = [];
+    wordCursorIndex = -1;
 
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
