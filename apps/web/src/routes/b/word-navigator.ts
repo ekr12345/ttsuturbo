@@ -4,13 +4,14 @@
  * All rights reserved.
  */
 
+import { segmentJapanese } from '$lib/functions/kuromoji-service';
+
 export interface WordToken {
   text: string;
   range: Range;
 }
 
 export function getWordTokens(container: Element): WordToken[] {
-  const segmenter = new Intl.Segmenter('ja', { granularity: 'word' });
   const tokens: WordToken[] = [];
 
   const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
@@ -27,13 +28,18 @@ export function getWordTokens(container: Element): WordToken[] {
   let node: Text | null;
   while ((node = walker.nextNode() as Text | null)) {
     const text = node.textContent || '';
-    for (const segment of segmenter.segment(text)) {
-      if (segment.isWordLike) {
+    if (!text.trim()) continue;
+
+    const segments = segmentJapanese(text);
+    let offset = 0;
+    for (const seg of segments) {
+      if (seg.trim()) {
         const range = document.createRange();
-        range.setStart(node, segment.index);
-        range.setEnd(node, segment.index + segment.segment.length);
-        tokens.push({ text: segment.segment, range });
+        range.setStart(node, offset);
+        range.setEnd(node, offset + seg.length);
+        tokens.push({ text: seg, range });
       }
+      offset += seg.length;
     }
   }
 
