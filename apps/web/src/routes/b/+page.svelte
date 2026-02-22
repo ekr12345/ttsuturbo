@@ -227,6 +227,7 @@
   let jishoWord = '';
   let jishoX = 0;
   let jishoY = 0;
+  let jishoWordTop = 0;
   let wordTokens: CharToken[] = [];
   let wordCursorIndex = -1;
   let anchorIndex = -1;
@@ -595,8 +596,15 @@
       const range = selection?.getRangeAt(0);
       const rect = range?.getBoundingClientRect();
       if (rect && rect.width > 0) {
+        const popupW = 528;
         jishoWord = text;
-        jishoX = Math.max(8, Math.min(rect.left, window.innerWidth - 288));
+        // X: left-align to word; if overflows right, right-align to word's right edge
+        jishoX =
+          rect.left + popupW <= window.innerWidth - 8
+            ? Math.max(8, rect.left)
+            : Math.max(8, rect.right - popupW);
+        // Y: always start below — popup will self-adjust after render using actual height
+        jishoWordTop = rect.top;
         jishoY = rect.bottom + 8;
         showJisho = true;
       }
@@ -1225,6 +1233,11 @@
         clearWordCursor();
         return;
       }
+    }
+
+    if (ev.key === 'Enter' && showJisho) {
+      showJisho = false;
+      return;
     }
 
     if (ev.key === 'Enter' && wordCursorIndex >= 0 && !showJisho) {
@@ -2039,7 +2052,13 @@
 {/if}
 
 {#if showJisho}
-  <JishoPopup word={jishoWord} x={jishoX} y={jishoY} onClose={() => (showJisho = false)} />
+  <JishoPopup
+    word={jishoWord}
+    x={jishoX}
+    y={jishoY}
+    wordTop={jishoWordTop}
+    onClose={() => (showJisho = false)}
+  />
 {/if}
 
 <svelte:window

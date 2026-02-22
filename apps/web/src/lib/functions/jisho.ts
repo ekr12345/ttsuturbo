@@ -24,7 +24,9 @@ export async function lookupWord(word: string): Promise<JishoEntry[]> {
   return (data.words || []).slice(0, 5).map((entry: any) => ({
     word: entry.reading?.kanji || entry.reading?.kana || word,
     reading: entry.reading?.kana || '',
-    meanings: (entry.senses || []).flatMap((s: any) => s.glosses || []).slice(0, 3),
+    meanings: (entry.senses || [])
+      .flatMap((s: any) => (s.glosses || []).map((g: any) => g.content ?? g))
+      .slice(0, 3),
     partOfSpeech: (entry.senses?.[0]?.pos || []).join(', ')
   }));
 }
