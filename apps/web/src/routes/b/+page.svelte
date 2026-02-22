@@ -170,7 +170,7 @@
     getWeightedAverage
   } from '$lib/functions/utils';
   import { onKeydownReader } from './on-keydown-reader';
-  import { getWordTokens, findNearestToken, type WordToken } from './word-navigator';
+  import { getCharTokens, findNearestToken, type CharToken } from './word-navigator';
   import { onDestroy, onMount, tick } from 'svelte';
   import JishoPopup from '$lib/components/jisho-popup/jisho-popup.svelte';
   import Fa from 'svelte-fa';
@@ -227,8 +227,9 @@
   let jishoWord = '';
   let jishoX = 0;
   let jishoY = 0;
-  let wordTokens: WordToken[] = [];
+  let wordTokens: CharToken[] = [];
   let wordCursorIndex = -1;
+  let anchorIndex = -1;
   let lastMouseX = 0;
   let lastMouseY = 0;
 
@@ -609,24 +610,39 @@
     lastMouseY = ev.clientY;
   }
 
-  function navigateWord(direction: 1 | -1) {
-    if (wordCursorIndex === -1) {
-      const container = document.querySelector('[data-reader-content]');
-      if (!container) return;
-      wordTokens = getWordTokens(container);
-      if (wordTokens.length === 0) return;
-      wordCursorIndex = findNearestToken(wordTokens, lastMouseX, lastMouseY);
-    } else {
-      wordCursorIndex = Math.max(0, Math.min(wordTokens.length - 1, wordCursorIndex + direction));
-    }
+  function applySelection() {
     const sel = window.getSelection();
-    if (sel) {
-      sel.removeAllRanges();
+    if (!sel) return;
+    sel.removeAllRanges();
+    if (anchorIndex === -1 || anchorIndex === wordCursorIndex) {
       sel.addRange(wordTokens[wordCursorIndex].range.cloneRange());
+    } else {
+      const from = Math.min(anchorIndex, wordCursorIndex);
+      const to = Math.max(anchorIndex, wordCursorIndex);
+      const range = document.createRange();
+      range.setStart(wordTokens[from].range.startContainer, wordTokens[from].range.startOffset);
+      range.setEnd(wordTokens[to].range.endContainer, wordTokens[to].range.endOffset);
+      sel.addRange(range);
     }
   }
 
-  function navigateWordVertical(direction: 1 | -1) {
+  function navigateWord(direction: 1 | -1, extend = false) {
+    if (wordCursorIndex === -1) {
+      const container = document.querySelector('[data-reader-content]');
+      if (!container) return;
+      wordTokens = getCharTokens(container);
+      if (wordTokens.length === 0) return;
+      wordCursorIndex = findNearestToken(wordTokens, lastMouseX, lastMouseY);
+      anchorIndex = -1;
+    } else {
+      if (extend && anchorIndex === -1) anchorIndex = wordCursorIndex;
+      if (!extend) anchorIndex = -1;
+      wordCursorIndex = Math.max(0, Math.min(wordTokens.length - 1, wordCursorIndex + direction));
+    }
+    applySelection();
+  }
+
+  function navigateVertical(direction: 1 | -1) {
     if (wordCursorIndex === -1 || wordTokens.length === 0) return;
 
     const currentRect = wordTokens[wordCursorIndex].range.getBoundingClientRect();
@@ -634,64 +650,30 @@
     const cy = (currentRect.top + currentRect.bottom) / 2;
     const threshold = currentRect.height * 0.5;
 
-    const cxThreshold = Math.max(currentRect.width, 60);
-
-    // Find the Y of the nearest line above or below, within the same column
-    let targetLineY: number | null = null;
-    for (const token of wordTokens) {
-      const rect = token.range.getBoundingClientRect();
-      const tokenCX = (rect.left + rect.right) / 2;
-      const tokenCY = (rect.top + rect.bottom) / 2;
-      if (Math.abs(tokenCX - cx) > cxThreshold) continue;
-      if (direction === 1 && tokenCY > cy + threshold) {
-        if (targetLineY === null || tokenCY < targetLineY) targetLineY = tokenCY;
-      } else if (direction === -1 && tokenCY < cy - threshold) {
-        if (targetLineY === null || tokenCY > targetLineY) targetLineY = tokenCY;
-      }
-    }
-
-    if (targetLineY === null) return;
-
-    // Find the minimum Y distance to targetLineY within the same column
-    let minYDist = Infinity;
-    for (const token of wordTokens) {
-      const rect = token.range.getBoundingClientRect();
-      const tokenCX = (rect.left + rect.right) / 2;
-      const tokenCY = (rect.top + rect.bottom) / 2;
-      if (Math.abs(tokenCX - cx) > cxThreshold) continue;
-      const dist = Math.abs(tokenCY - targetLineY);
-      if (dist < minYDist) minYDist = dist;
-    }
-
-    // Among tokens on that exact line, find the one with closest X
     let nearest = -1;
-    let minXDist = Infinity;
+    let minDist = Infinity;
     for (let i = 0; i < wordTokens.length; i++) {
       const rect = wordTokens[i].range.getBoundingClientRect();
-      const tokenCY = (rect.top + rect.bottom) / 2;
-      const tokenCX = (rect.left + rect.right) / 2;
-      if (Math.abs(tokenCX - cx) > cxThreshold) continue;
-      if (Math.abs(tokenCY - targetLineY) <= minYDist + 2) {
-        const xDist = Math.abs(tokenCX - cx);
-        if (xDist < minXDist) {
-          minXDist = xDist;
-          nearest = i;
-        }
+      const tcx = (rect.left + rect.right) / 2;
+      const tcy = (rect.top + rect.bottom) / 2;
+      const onNextLine = direction === 1 ? tcy > cy + threshold : tcy < cy - threshold;
+      if (!onNextLine) continue;
+      const dist = Math.hypot(tcx - cx, tcy - cy);
+      if (dist < minDist) {
+        minDist = dist;
+        nearest = i;
       }
     }
 
     if (nearest === -1) return;
     wordCursorIndex = nearest;
-    const sel = window.getSelection();
-    if (sel) {
-      sel.removeAllRanges();
-      sel.addRange(wordTokens[wordCursorIndex].range.cloneRange());
-    }
+    applySelection();
   }
 
   function clearWordCursor() {
     wordTokens = [];
     wordCursorIndex = -1;
+    anchorIndex = -1;
     window.getSelection()?.removeAllRanges();
     showJisho = false;
   }
@@ -1221,15 +1203,15 @@
   }
 
   function onKeydown(ev: KeyboardEvent) {
-    if (ev.shiftKey && !ev.altKey && !ev.ctrlKey && !ev.metaKey && !ev.repeat) {
+    if (!ev.altKey && !ev.ctrlKey && !ev.metaKey && !ev.repeat) {
       if (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') {
         ev.preventDefault();
-        navigateWord(ev.key === 'ArrowRight' ? 1 : -1);
+        navigateWord(ev.key === 'ArrowRight' ? 1 : -1, ev.shiftKey);
         return;
       }
       if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
         ev.preventDefault();
-        navigateWordVertical(ev.key === 'ArrowDown' ? 1 : -1);
+        navigateVertical(ev.key === 'ArrowDown' ? 1 : -1);
         return;
       }
     }
