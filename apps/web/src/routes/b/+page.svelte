@@ -171,6 +171,7 @@
   } from '$lib/functions/utils';
   import { onKeydownReader } from './on-keydown-reader';
   import { onDestroy, onMount, tick } from 'svelte';
+  import JishoPopup from '$lib/components/jisho-popup/jisho-popup.svelte';
   import Fa from 'svelte-fa';
   import {
     clearRange,
@@ -221,6 +222,10 @@
   let showReaderImageGallery = false;
   let dismissDialogs = true;
   let syncedResolver: () => void;
+  let showJisho = false;
+  let jishoWord = '';
+  let jishoX = 0;
+  let jishoY = 0;
 
   const syncedPromise = new Promise<void>((resolver) => {
     syncedResolver = resolver;
@@ -550,7 +555,10 @@
     document.dispatchEvent(new CustomEvent(SKIPKEYLISTENER, { detail: $skipKeyDownListener$ }));
   }
 
-  onMount(() => document.addEventListener('ttu-action', handleAction, false));
+  onMount(() => {
+    document.addEventListener('ttu-action', handleAction, false);
+    document.addEventListener('pointerup', handleJishoLookup, false);
+  });
 
   function handleAction({ detail }: any) {
     if (!detail.type) {
@@ -571,11 +579,30 @@
       scheduleReplication(detail.syncType);
     }
   }
+  function handleJishoLookup() {
+    const selection = window.getSelection();
+    const text = selection?.toString().trim() || '';
+
+    if (text.length > 0 && text.length <= 20) {
+      const range = selection?.getRangeAt(0);
+      const rect = range?.getBoundingClientRect();
+      if (rect && rect.width > 0) {
+        jishoWord = text;
+        jishoX = Math.max(8, Math.min(rect.left, window.innerWidth - 288));
+        jishoY = rect.bottom + 8;
+        showJisho = true;
+      }
+    } else if (!text) {
+      showJisho = false;
+    }
+  }
+
   /** Experimental Code - May be removed any time without warning */
 
   onDestroy(() => {
     if (browser) {
       document.removeEventListener('ttu-action', handleAction, false);
+      document.removeEventListener('pointerup', handleJishoLookup, false);
       document.documentElement.lang = 'ja';
     }
 
@@ -1894,6 +1921,10 @@
 
 {#if bookCompleted}
   <BookCompletionConfetti {confettiWidthModifier} {confettiMaxRuns} {window} />
+{/if}
+
+{#if showJisho}
+  <JishoPopup word={jishoWord} x={jishoX} y={jishoY} onClose={() => (showJisho = false)} />
 {/if}
 
 <svelte:window
