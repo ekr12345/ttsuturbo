@@ -618,9 +618,16 @@
     }
   }
 
+  let cursorHideTimer: ReturnType<typeof setTimeout> | undefined;
+
   function handleMouseMove(ev: MouseEvent) {
     lastMouseX = ev.clientX;
     lastMouseY = ev.clientY;
+    document.documentElement.style.cursor = '';
+    clearTimeout(cursorHideTimer);
+    cursorHideTimer = setTimeout(() => {
+      document.documentElement.style.cursor = 'none';
+    }, 3000);
   }
 
   function applySelection() {
@@ -710,6 +717,8 @@
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener(PAGE_CHANGE, handlePageChange, false);
       document.documentElement.lang = 'ja';
+      clearTimeout(cursorHideTimer);
+      document.documentElement.style.cursor = '';
     }
 
     readerImageGalleryPictures$.next([]);
