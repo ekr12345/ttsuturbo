@@ -1274,12 +1274,14 @@
       return;
     }
 
-    if (ev.key === 'f' && !ev.altKey && !ev.ctrlKey && !ev.metaKey && !showJisho) {
+    if (ev.key === 'f' && !ev.altKey && !ev.ctrlKey && !ev.metaKey) {
+      showJisho = false;
       onFullscreenClick();
       return;
     }
 
-    if (ev.key === 's' && !ev.altKey && !ev.ctrlKey && !ev.metaKey && !showJisho) {
+    if (ev.key === 's' && !ev.altKey && !ev.ctrlKey && !ev.metaKey) {
+      showJisho = false;
       leaveReader(mergeEntries.SETTINGS.routeId, false);
       return;
     }

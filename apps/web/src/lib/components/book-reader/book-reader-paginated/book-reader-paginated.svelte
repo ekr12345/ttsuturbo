@@ -174,7 +174,7 @@
 
   const cssClassOverflowHidden = 'overflow-hidden';
 
-  const gap = 40;
+  const gap = 75;
 
   const destroy$ = new Subject<void>();
 
