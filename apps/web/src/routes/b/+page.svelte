@@ -1269,6 +1269,11 @@
       return;
     }
 
+    if (ev.key === 'd' && !ev.altKey && !ev.ctrlKey && !ev.metaKey && !showJisho) {
+      showHeader = !showHeader;
+      return;
+    }
+
     if (ev.key === 'f' && !ev.altKey && !ev.ctrlKey && !ev.metaKey && !showJisho) {
       onFullscreenClick();
       return;
