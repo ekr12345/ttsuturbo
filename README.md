@@ -86,6 +86,55 @@ The first time you open the reader, select books from your device by clicking th
 
 ---
 
+# Web Article Import (Bookmarklet)
+
+This fork includes a companion server and browser bookmarklet that lets you import any web article directly into your library as a `.txt` file — one click, no copy-pasting.
+
+### How It Works
+
+1. The companion server (`ttsu-server.py`) runs locally at `http://localhost:9011` and proxies article fetches
+2. The browser bookmarklet sends the current page URL to the reader via `?importurl=`
+3. The reader fetches the article, extracts clean text using Mozilla Readability, strips images, and saves it as `<article-title>.txt` in your library
+
+### Setup
+
+**Start the server:**
+
+```bash
+python3 ~/ttsu-server.py
+```
+
+**Create the bookmarklet:**
+Add a new browser bookmark with this as the URL:
+
+```javascript
+javascript: window.open(
+  'http://localhost:9011/manage?importurl=' + encodeURIComponent(location.href)
+);
+```
+
+### Usage
+
+Navigate to any web article, click the bookmarklet — the article appears in your ッツ library automatically.
+
+You can also import articles manually from the book manager by clicking the URL import button and pasting a link.
+
+---
+
+# Bookmarks & Reading Points
+
+Custom reading points and character count changes in pagination mode are temporary — changing the page or resizing the window will reset them. When **Selection to Bookmark** is enabled and a custom reading point is active, selected text takes priority for bookmark positioning.
+
+**Note**: Overlapping elements from browser extensions or app wrappers may affect which node is selected for a custom reading point. Move them outside the reader area or disable them if you have issues. If the selected node spans multiple columns or pages, the bookmark may be placed on a previous element — try the **Avoid Page Break** option, clear your selection, or select a different node.
+
+**Note for "New Only" Import/Export**: Comparison is based on device time. Different time settings across devices may cause unexpected sync behaviour (data not uploaded/downloaded).
+
+**Note for custom fonts**: After storing a custom font for the first time or hard refreshing, you may encounter longer load times. A normal tab refresh should resolve this.
+
+**Note for "Disabled Wheel Navigation"**: Mouse wheel clicks are intercepted when enabled. For Yomitan, keep the wheel pressed while moving the cursor to trigger a popup.
+
+---
+
 # Book Manager
 
 Open the book manager from the reader header. You'll see covers for all imported books with titles and progress tracked by bookmark location.
