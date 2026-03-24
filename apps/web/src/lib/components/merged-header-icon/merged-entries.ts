@@ -13,6 +13,7 @@ import {
   faFolderPlus,
   faHashtag,
   faImages,
+  faLink,
   faSignOutAlt,
   faTriangleExclamation
 } from '@fortawesome/free-solid-svg-icons';
@@ -57,5 +58,16 @@ export const mergeEntries = {
     title: 'Import from Folder'
   },
   FILE_IMPORT: { routeId: '', label: 'Import File(s)', icon: faFileArrowUp, title: 'Import Files' },
-  BACKUP_IMPORT: { routeId: '', label: 'Import Backup', icon: faFileZipper, title: 'Import Backup' }
+  BACKUP_IMPORT: {
+    routeId: '',
+    label: 'Import Backup',
+    icon: faFileZipper,
+    title: 'Import Backup'
+  },
+  URL_IMPORT: {
+    routeId: '',
+    label: 'Import from URL',
+    icon: faLink,
+    title: 'Import Article from URL'
+  }
 };

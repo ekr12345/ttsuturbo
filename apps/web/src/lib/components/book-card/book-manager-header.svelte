@@ -71,6 +71,7 @@
     deleteStatistics: void;
     replicateData: void;
     cancelReplication: void;
+    urlImport: void;
   }>();
 
   const nTranslateXHeaderMat = '-translate-x-3 xl:-translate-x-2.5';
@@ -106,8 +107,8 @@
 
     importMenuItems.push(
       ...($isMobile$
-        ? [mergeEntries.BACKUP_IMPORT]
-        : [mergeEntries.FOLDER_IMPORT, mergeEntries.BACKUP_IMPORT])
+        ? [mergeEntries.BACKUP_IMPORT, mergeEntries.URL_IMPORT]
+        : [mergeEntries.FOLDER_IMPORT, mergeEntries.BACKUP_IMPORT, mergeEntries.URL_IMPORT])
     );
 
     storageSourceMenuItems.push(
@@ -159,6 +160,10 @@
 
       case mergeEntries.BACKUP_IMPORT.label:
         backupImportElm.click();
+        break;
+
+      case mergeEntries.URL_IMPORT.label:
+        dispatch('urlImport');
         break;
 
       default:

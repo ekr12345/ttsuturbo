@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Readability } from '@mozilla/readability';
   import { goto } from '$app/navigation';
   import { faUpload } from '@fortawesome/free-solid-svg-icons';
   import BookCardList from '$lib/components/book-card/book-card-list.svelte';
@@ -51,7 +52,7 @@
   import { reduceToEmptyString } from '$lib/functions/rxjs/reduce-to-empty-string';
   import pLimit from 'p-limit';
   import { combineLatest, map, Observable, share, Subject, switchMap, takeUntil } from 'rxjs';
-  import { onDestroy, tick } from 'svelte';
+  import { onDestroy, onMount, tick } from 'svelte';
   import Fa from 'svelte-fa';
 
   const booksAreLoading$ = database.listLoading$.pipe(map((isLoading) => isLoading));
@@ -112,6 +113,17 @@
       selectedBookIds = new Set();
     }
   }
+
+  onMount(() => {
+    const params = new URLSearchParams(window.location.search);
+    const importUrl = params.get('importurl');
+    if (importUrl) {
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('importurl');
+      history.replaceState({}, '', newUrl.toString());
+      onUrlImport(importUrl);
+    }
+  });
 
   onDestroy(() => dialogManager.dialogs$.next([]));
 
@@ -309,6 +321,38 @@
 
     if (error) {
       showError(errorTitle, error, 'Error(s) occurred during bookimport');
+    }
+  }
+
+  async function onUrlImport(prefilledUrl?: string) {
+    const url = prefilledUrl || window.prompt('Paste article URL:');
+    if (!url) return;
+
+    try {
+      const response = await fetch(`/api/fetch?url=${encodeURIComponent(url)}`);
+      if (!response.ok) throw new Error(`Server returned ${response.status}`);
+      const html = await response.text();
+
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+
+      const article = new Readability(doc).parse();
+      if (!article) throw new Error('Could not extract article content');
+
+      const title =
+        article.title
+          .trim()
+          .replace(/[/\\:*?"<>|]/g, '-')
+          .slice(0, 100) || 'article';
+
+      const contentDoc = new DOMParser().parseFromString(article.content, 'text/html');
+      contentDoc.querySelectorAll('img, figure, picture, figcaption').forEach((el) => el.remove());
+      const text = (contentDoc.body.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
+
+      const file = new File([text], `${title}.txt`, { type: 'text/plain' });
+      await onFilesChange([file]);
+    } catch (e: any) {
+      showError('URL Import failed', e.message || 'Could not import article', '');
     }
   }
 
@@ -680,6 +724,7 @@
     on:deleteStatistics={onDeleteStatistics}
     on:replicateData={onReplicateData}
     on:importBackup={(ev) => onImportBackup(ev.detail)}
+    on:urlImport={() => onUrlImport()}
   />
 </div>
 
