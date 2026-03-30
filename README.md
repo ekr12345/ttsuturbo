@@ -12,10 +12,9 @@ A fork of [ttu-ttu/ebook-reader](https://github.com/ttu-ttu/ebook-reader) with c
 
 ### Keyboard & Navigation
 
-- **Space / Shift+Space** — turn pages forward/backward (pagination mode)
-- **F / S** — page forward/backward (alternative hotkeys)
-- **Arrow keys** — character-level navigation; hold **Shift** to extend selection
-- **Enter** — close Jisho popup
+- **Arrow keys (horizontal mode)** — ←/→ move character by character; ↑/↓ move line by line; hold **Shift** to extend selection
+- **Arrow keys (vertical mode)** — ↑/↓ move character by character within a column; ←/→ jump column to column, landing at the top; first keypress always places cursor at upper-right
+- **Enter** — open/close Jisho popup
 
 ### Reading Experience
 
@@ -60,29 +59,25 @@ The first time you open the reader, select books from your device by clicking th
 
 > Keys are bound to physical location (see [MDN KeyboardEvent.code](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code)).
 
-### Original Keybinds
+### Keybinds
 
-| Key                                     | Description                                              |
-| --------------------------------------- | -------------------------------------------------------- |
-| <kbd>Space</kbd>                        | Toggle auto-scroll (continuous) / Next page (pagination) |
-| <kbd>a</kbd> / <kbd>d</kbd>             | Increase / decrease auto-scroll speed                    |
-| <kbd>b</kbd>                            | Create bookmark at current location                      |
-| <kbd>r</kbd>                            | Return to bookmark location                              |
-| <kbd>t</kbd>                            | Select a new custom reading point                        |
-| <kbd>p</kbd>                            | Toggle Reading Tracker                                   |
-| <kbd>f</kbd>                            | Toggle Reading Tracker Freeze Position                   |
-| <kbd>PageDown</kbd> / <kbd>PageUp</kbd> | Next / previous page                                     |
-| <kbd>n</kbd> / <kbd>m</kbd>             | Next / previous chapter                                  |
-
-### Fork Additions
-
-| Key                                                 | Description                             |
-| --------------------------------------------------- | --------------------------------------- |
-| <kbd>Space</kbd> / <kbd>Shift+Space</kbd>           | Next / previous page (pagination mode)  |
-| <kbd>F</kbd> / <kbd>S</kbd>                         | Next / previous page (alternative)      |
-| <kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd> | Character-level navigation              |
-| <kbd>Shift</kbd> + Arrow                            | Extend selection character by character |
-| <kbd>Enter</kbd>                                    | Close Jisho popup                       |
+| Key                                          | Description                                                                           |
+| -------------------------------------------- | ------------------------------------------------------------------------------------- |
+| <kbd>Space</kbd>                             | Toggle auto-scroll                                                                    |
+| <kbd>a</kbd>                                 | Increase auto-scroll speed                                                            |
+| <kbd>d</kbd>                                 | Toggle header                                                                         |
+| <kbd>b</kbd>                                 | Create bookmark at current location                                                   |
+| <kbd>r</kbd>                                 | Return to bookmark location                                                           |
+| <kbd>t</kbd>                                 | Set custom reading point                                                              |
+| <kbd>p</kbd>                                 | Toggle reading tracker                                                                |
+| <kbd>f</kbd>                                 | Toggle fullscreen                                                                     |
+| <kbd>s</kbd>                                 | Open settings                                                                         |
+| <kbd>PageDown</kbd> / <kbd>PageUp</kbd>      | Next / previous page                                                                  |
+| <kbd>n</kbd> / <kbd>m</kbd>                  | Previous / next chapter                                                               |
+| <kbd>←</kbd> <kbd>→</kbd>                    | Move character by character (horizontal) / jump column to column (vertical)           |
+| <kbd>↑</kbd> <kbd>↓</kbd>                    | Move line by line (horizontal) / move character by character within column (vertical) |
+| <kbd>Shift</kbd> + <kbd>←</kbd> <kbd>→</kbd> | Extend selection (horizontal mode only)                                               |
+| <kbd>Enter</kbd>                             | Open / close Jisho popup                                                              |
 
 ---
 

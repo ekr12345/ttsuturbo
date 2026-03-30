@@ -652,9 +652,10 @@
       if (!container) return;
       wordTokens = getCharTokens(container);
       if (wordTokens.length === 0) return;
-      wordCursorIndex = pageJustChanged
-        ? findFirstVisibleToken(wordTokens)
-        : findNearestToken(wordTokens, lastMouseX, lastMouseY);
+      wordCursorIndex =
+        $verticalMode$ || pageJustChanged
+          ? findFirstVisibleToken(wordTokens, $verticalMode$)
+          : findNearestToken(wordTokens, lastMouseX, lastMouseY);
       pageJustChanged = false;
       anchorIndex = -1;
     } else {
@@ -690,6 +691,70 @@
 
     if (nearest === -1) return;
     wordCursorIndex = nearest;
+    applySelection();
+  }
+
+  // In vertical-rl: direction 1 = next column (leftward), direction -1 = prev column (rightward)
+  function navigateColumn(direction: 1 | -1) {
+    if (wordCursorIndex === -1) {
+      const container = document.querySelector('[data-reader-content]');
+      if (!container) return;
+      wordTokens = getCharTokens(container);
+      if (wordTokens.length === 0) return;
+      wordCursorIndex = findFirstVisibleToken(wordTokens, true);
+      pageJustChanged = false;
+      anchorIndex = -1;
+      applySelection();
+      return;
+    }
+    if (wordTokens.length === 0) return;
+
+    const currentRect = wordTokens[wordCursorIndex].range.getBoundingClientRect();
+    // In vertical-rl, character width ≈ font-size. Use max of w/h as a safe estimate.
+    const charSize = Math.max(currentRect.width, currentRect.height, 8);
+    const colTol = charSize * 1.5;
+
+    // Gather only on-screen tokens (paginated mode renders off-screen pages too)
+    type Tok = { index: number; cx: number; cy: number };
+    const allToks: Tok[] = [];
+    for (let i = 0; i < wordTokens.length; i++) {
+      const rect = wordTokens[i].range.getBoundingClientRect();
+      if (rect.width === 0 && rect.height === 0) continue;
+      const tcx = (rect.left + rect.right) / 2;
+      const tcy = (rect.top + rect.bottom) / 2;
+      if (tcx < 0 || tcx > window.innerWidth || tcy < 0 || tcy > window.innerHeight) continue;
+      allToks.push({ index: i, cx: tcx, cy: tcy });
+    }
+
+    if (allToks.length === 0) return;
+
+    // Cluster tokens into columns by cx proximity (sliding mean)
+    allToks.sort((a, b) => a.cx - b.cx);
+    const cols: { meanCx: number; tokens: Tok[] }[] = [];
+    for (const tok of allToks) {
+      const last = cols[cols.length - 1];
+      if (last && Math.abs(tok.cx - last.meanCx) < colTol) {
+        last.tokens.push(tok);
+        last.meanCx = last.tokens.reduce((s, t) => s + t.cx, 0) / last.tokens.length;
+      } else {
+        cols.push({ meanCx: tok.cx, tokens: [tok] });
+      }
+    }
+
+    // Sort columns right-to-left (vertical-rl reading order)
+    cols.sort((a, b) => b.meanCx - a.meanCx);
+
+    // Find which column the cursor is in
+    const curColIdx = cols.findIndex((c) => c.tokens.some((t) => t.index === wordCursorIndex));
+    if (curColIdx === -1) return;
+
+    const targetColIdx = curColIdx + direction;
+    if (targetColIdx < 0 || targetColIdx >= cols.length) return;
+
+    // Pick topmost token in the target column
+    const topmost = cols[targetColIdx].tokens.reduce((best, t) => (t.cy < best.cy ? t : best));
+    wordCursorIndex = topmost.index;
+    anchorIndex = -1;
     applySelection();
   }
 
@@ -1236,15 +1301,28 @@
 
   function onKeydown(ev: KeyboardEvent) {
     if (!ev.altKey && !ev.ctrlKey && !ev.metaKey && !ev.repeat) {
-      if (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') {
-        ev.preventDefault();
-        navigateWord(ev.key === 'ArrowRight' ? 1 : -1, ev.shiftKey);
-        return;
-      }
-      if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
-        ev.preventDefault();
-        navigateVertical(ev.key === 'ArrowDown' ? 1 : -1);
-        return;
+      if ($verticalMode$) {
+        if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
+          ev.preventDefault();
+          navigateWord(ev.key === 'ArrowDown' ? 1 : -1, ev.shiftKey);
+          return;
+        }
+        if (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') {
+          ev.preventDefault();
+          navigateColumn(ev.key === 'ArrowLeft' ? 1 : -1);
+          return;
+        }
+      } else {
+        if (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') {
+          ev.preventDefault();
+          navigateWord(ev.key === 'ArrowRight' ? 1 : -1, ev.shiftKey);
+          return;
+        }
+        if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
+          ev.preventDefault();
+          navigateVertical(ev.key === 'ArrowDown' ? 1 : -1);
+          return;
+        }
       }
     }
 

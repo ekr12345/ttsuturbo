@@ -39,19 +39,19 @@ export function getCharTokens(container: Element): CharToken[] {
   return tokens;
 }
 
-export function findFirstVisibleToken(tokens: CharToken[]): number {
+export function findFirstVisibleToken(tokens: CharToken[], vertical = false): number {
   let best = -1;
   let bestTop = Infinity;
-  let bestLeft = Infinity;
+  let bestLeft = vertical ? -Infinity : Infinity;
 
   for (let i = 0; i < tokens.length; i++) {
     const rect = tokens[i].range.getBoundingClientRect();
     if (rect.width === 0 && rect.height === 0) continue;
-    // Use center point so partial-visibility and sub-pixel rounding don't exclude characters
     const cx = (rect.left + rect.right) / 2;
     const cy = (rect.top + rect.bottom) / 2;
     if (cx >= 0 && cx <= window.innerWidth && cy >= 0 && cy <= window.innerHeight) {
-      if (rect.top < bestTop || (Math.abs(rect.top - bestTop) < 2 && rect.left < bestLeft)) {
+      const betterLeft = vertical ? rect.left > bestLeft : rect.left < bestLeft;
+      if (rect.top < bestTop || (Math.abs(rect.top - bestTop) < 2 && betterLeft)) {
         bestTop = rect.top;
         bestLeft = rect.left;
         best = i;
@@ -59,8 +59,8 @@ export function findFirstVisibleToken(tokens: CharToken[]): number {
     }
   }
 
-  // Fallback: nothing found in viewport, find nearest to top-left of screen
-  return best >= 0 ? best : findNearestToken(tokens, 0, 0);
+  // Fallback: vertical mode starts upper-right, horizontal starts upper-left
+  return best >= 0 ? best : findNearestToken(tokens, vertical ? window.innerWidth : 0, 0);
 }
 
 export function findNearestToken(tokens: CharToken[], x: number, y: number): number {
