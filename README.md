@@ -30,6 +30,7 @@ A fork of [ttu-ttu/ebook-reader](https://github.com/ttu-ttu/ebook-reader) with c
 - **Improved Jisho popup** — better positioning and sizing
 - **Refined book manager UI** — cleaner header and merged entries layout
 - **Sensible default settings** — better out-of-the-box experience
+- **Web article import** — companion server (`ttsu-server.py`) + browser bookmarklet lets you import any web article directly into your library as a `.txt` file in one click; articles can also be imported manually via the URL import button in the book manager
 
 ---
 
