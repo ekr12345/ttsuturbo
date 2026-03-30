@@ -14,7 +14,11 @@ A fork of [ttu-ttu/ebook-reader](https://github.com/ttu-ttu/ebook-reader) with c
 
 - **Arrow keys (horizontal mode)** — ←/→ move character by character; ↑/↓ move line by line; hold **Shift** to extend selection
 - **Arrow keys (vertical mode)** — ↑/↓ move character by character within a column; ←/→ jump column to column, landing at the top; first keypress always places cursor at upper-right
+- **Space** — toggle auto-scroll
 - **PageDown / PageUp** — next / previous page (pagination mode)
+- **F** — toggle fullscreen
+- **D** — toggle header
+- **S** — open settings
 - **Enter** — open/close Jisho popup
 - **Escape** — close Jisho popup or clear character selection
 
