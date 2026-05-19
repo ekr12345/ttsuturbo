@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Readability } from '@mozilla/readability';
   import { goto } from '$app/navigation';
+  import { base } from '$app/paths';
   import { faUpload } from '@fortawesome/free-solid-svg-icons';
   import BookCardList from '$lib/components/book-card/book-card-list.svelte';
   import type { BookCardProps } from '$lib/components/book-card/book-card-props';
@@ -698,7 +699,7 @@
   loop
   playsinline
   class="fixed inset-0 -z-10 h-full w-full object-cover"
-  src="/bg.mp4"
+  src="{base}/bg.mp4"
 ></video>
 
 <div class="elevation-4 fixed inset-x-0 top-0 z-10">
