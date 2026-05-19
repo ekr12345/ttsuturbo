@@ -334,6 +334,34 @@ export const lastBlurredTrackerItems$ = writableSetLocalStorageSubject<string>()
   new Set<string>()
 );
 
+export const lookupHighlights$ = writableSetLocalStorageSubject<string>()(
+  'lookupHighlights',
+  new Set<string>()
+);
+
+export function addLookupHighlight(word: string): void {
+  const w = word.trim();
+  if (!w) return;
+  const current = lookupHighlights$.getValue() as Set<string>;
+  if (current.has(w)) return;
+  const next = new Set(current);
+  next.add(w);
+  lookupHighlights$.next(next);
+}
+
+export function removeLookupHighlight(word: string): void {
+  const w = word.trim();
+  const current = lookupHighlights$.getValue() as Set<string>;
+  if (!current.has(w)) return;
+  const next = new Set(current);
+  next.delete(w);
+  lookupHighlights$.next(next);
+}
+
+export function clearLookupHighlights(): void {
+  lookupHighlights$.next(new Set<string>());
+}
+
 export const lastSyncedSettingsSource$ = writableStringLocalStorageSubject()(
   'lastSyncedSettingsSource',
   InternalStorageSources.INTERNAL_BROWSER

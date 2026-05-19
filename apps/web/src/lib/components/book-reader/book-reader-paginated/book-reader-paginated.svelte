@@ -10,11 +10,13 @@
   import {
     disableWheelNavigation$,
     firstDimensionMargin$,
+    lookupHighlights$,
     selectionToBookmarkEnabled$,
     skipKeyDownListener$,
     swipeThreshold$,
     userFonts$
   } from '$lib/data/store';
+  import { applyLookupHighlights } from '$lib/functions/lookup-highlighter';
   import { clearRange, createRange, pulseElement } from '$lib/functions/range-util';
   import { iffBrowser } from '$lib/functions/rxjs/iff-browser';
   import { getExternalTargetElement, isMobile$ } from '$lib/functions/utils';
@@ -492,6 +494,8 @@
     }
     if (!scrollEl) return;
 
+    applyLookupHighlights(contentEl, $lookupHighlights$);
+
     calculator = new SectionCharacterStatsCalculator(
       scrollEl,
       sections,
@@ -654,6 +658,10 @@
       default:
     }
   }
+
+  lookupHighlights$.pipe(skip(1), takeUntil(destroy$)).subscribe((words) => {
+    applyLookupHighlights(contentEl, words);
+  });
 
   nextChapter$.pipe(takeUntil(destroy$)).subscribe((chapterId) => {
     const nextSectionIndex = sections.findIndex(

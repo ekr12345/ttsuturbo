@@ -846,7 +846,7 @@
 {/if}
 {#if $statisticsTitleFilterIsOpen$}
   <div
-    class="writing-horizontal-tb fixed top-0 right-0 z-[60] flex h-full w-full max-w-xl flex-col justify-between bg-gray-700 text-white"
+    class="writing-horizontal-tb fixed top-0 right-0 z-[60] flex h-full w-full max-w-xl flex-col justify-between bg-orange-900 text-white"
     in:fly|local={{ x: 100, duration: 100, easing: quintInOut }}
     use:clickOutside={() => ($statisticsTitleFilterIsOpen$ = false)}
   >

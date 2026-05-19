@@ -74,7 +74,7 @@
       <div slot="icon" class={baseIconClasses}>
         <Fa icon={mergeTo.icon} />
       </div>
-      <div class="w-40 bg-gray-700 md:w-32" slot="content">
+      <div class="w-40 bg-orange-900 md:w-32" slot="content">
         {#each actionItems as actionItem (actionItem.label)}
           <div
             tabindex="0"

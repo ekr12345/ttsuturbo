@@ -14,9 +14,11 @@
   import {
     customReadingPointEnabled$,
     disableWheelNavigation$,
+    lookupHighlights$,
     skipKeyDownListener$,
     userFonts$
   } from '$lib/data/store';
+  import { applyLookupHighlights } from '$lib/functions/lookup-highlighter';
   import { prependValue } from '$lib/functions/file-loaders/epub/generate-epub-html';
   import { getReferencePoints } from '$lib/functions/range-util';
   import { getExternalTargetElement } from '$lib/functions/utils';
@@ -558,6 +560,8 @@
   function onHtmlLoad() {
     if (!contentEl) return;
 
+    applyLookupHighlights(contentEl, $lookupHighlights$);
+
     calculator = new CharacterStatsCalculator(
       contentEl,
       verticalMode ? 'vertical' : 'horizontal',
@@ -602,6 +606,10 @@
       });
     }
   }
+
+  lookupHighlights$.pipe(skip(1), takeUntil(destroy$)).subscribe((words) => {
+    applyLookupHighlights(contentEl, words);
+  });
 
   nextChapter$.pipe(takeUntil(destroy$)).subscribe((chapterId) => {
     let targetElement = document.getElementById(chapterId);

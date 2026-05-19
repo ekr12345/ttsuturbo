@@ -91,7 +91,10 @@
     showPercentage$,
     enableVerticalFontKerning$,
     enableFontVPAL$,
-    verticalTextOrientation$
+    verticalTextOrientation$,
+    addLookupHighlight,
+    removeLookupHighlight,
+    lookupHighlights$
   } from '$lib/data/store';
   import BookCompletionConfetti from '$lib/components/book-reader/book-completion-confetti/book-completion-confetti.svelte';
   import BookReaderHeader from '$lib/components/book-reader/book-reader-header.svelte';
@@ -454,6 +457,20 @@
     takeWhenBrowser()
   );
 
+  const setDarkThemeClass$ = backgroundColor$.pipe(
+    tapDom(
+      () => document.body,
+      (backgroundColor, body) => {
+        const m = String(backgroundColor).match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+        const isDark = m ? 0.299 * +m[1] + 0.587 * +m[2] + 0.114 * +m[3] < 128 : false;
+        body.classList.toggle('is-dark-theme', isDark);
+      },
+      (body) => body.classList.remove('is-dark-theme')
+    ),
+    reduceToEmptyString(),
+    takeWhenBrowser()
+  );
+
   const writingModeStyleName = 'writing-mode';
   const setWritingMode$ = writingMode$.pipe(
     tapDom(
@@ -603,6 +620,7 @@
       if (rect && rect.width > 0) {
         const popupW = 528;
         jishoWord = text;
+        addLookupHighlight(text);
         // X: left-align to word; if overflows right, right-align to word's right edge
         jishoX =
           rect.left + popupW <= window.innerWidth - 8
@@ -1299,28 +1317,52 @@
     }
   }
 
+  let arrowHoldKey = '';
+  let arrowHoldStart = 0;
+
+  function arrowStepCount(ev: KeyboardEvent): number {
+    if (!ev.repeat || ev.key !== arrowHoldKey) {
+      arrowHoldKey = ev.key;
+      arrowHoldStart = performance.now();
+      return 1;
+    }
+    const heldMs = performance.now() - arrowHoldStart;
+    if (heldMs < 700) return 1;
+    if (heldMs < 1400) return 2;
+    if (heldMs < 2200) return 3;
+    return 4;
+  }
+
   function onKeydown(ev: KeyboardEvent) {
-    if (!ev.altKey && !ev.ctrlKey && !ev.metaKey && !ev.repeat) {
+    if (!ev.altKey && !ev.ctrlKey && !ev.metaKey) {
       if ($verticalMode$) {
         if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
           ev.preventDefault();
-          navigateWord(ev.key === 'ArrowDown' ? 1 : -1, ev.shiftKey);
+          const dir = ev.key === 'ArrowDown' ? 1 : -1;
+          const steps = arrowStepCount(ev);
+          for (let i = 0; i < steps; i++) navigateWord(dir, ev.shiftKey);
           return;
         }
         if (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') {
           ev.preventDefault();
-          navigateColumn(ev.key === 'ArrowLeft' ? 1 : -1);
+          const dir = ev.key === 'ArrowLeft' ? 1 : -1;
+          const steps = arrowStepCount(ev);
+          for (let i = 0; i < steps; i++) navigateColumn(dir);
           return;
         }
       } else {
         if (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') {
           ev.preventDefault();
-          navigateWord(ev.key === 'ArrowRight' ? 1 : -1, ev.shiftKey);
+          const dir = ev.key === 'ArrowRight' ? 1 : -1;
+          const steps = arrowStepCount(ev);
+          for (let i = 0; i < steps; i++) navigateWord(dir, ev.shiftKey);
           return;
         }
         if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
           ev.preventDefault();
-          navigateVertical(ev.key === 'ArrowDown' ? 1 : -1);
+          const dir = ev.key === 'ArrowDown' ? 1 : -1;
+          const steps = arrowStepCount(ev);
+          for (let i = 0; i < steps; i++) navigateVertical(dir);
           return;
         }
       }
@@ -2012,6 +2054,7 @@
   />
   {$initBookmarkData$ ?? ''}
   {$setBackgroundColor$ ?? ''}
+  {$setDarkThemeClass$ ?? ''}
   {$setWritingMode$ ?? ''}
   {$textSelector$ ?? ''}
   {$replicator$ ?? ''}

@@ -371,7 +371,7 @@
                   </svg>
                 {/key}
               </div>
-              <div class="w-28 bg-gray-700" slot="content">
+              <div class="w-28 bg-orange-900" slot="content">
                 {#each storageSourceMenuItems as sourceMenuItem (sourceMenuItem.key)}
                   <div
                     tabindex="0"
@@ -422,7 +422,7 @@
                   <Fa icon={faArrowDownWideShort} />
                 {/if}
               </div>
-              <div class="w-44 bg-gray-700" slot="content">
+              <div class="w-44 bg-orange-900" slot="content">
                 {#each sortMenuItems as sortMenuItem (sortMenuItem.property)}
                   {@const isCurrentSort =
                     $booklistSortOptions$[$storageSource$].property === sortMenuItem.property}

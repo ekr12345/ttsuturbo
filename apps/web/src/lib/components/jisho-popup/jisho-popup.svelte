@@ -1,12 +1,27 @@
 <script lang="ts">
   import { onMount, afterUpdate } from 'svelte';
   import { lookupWord, type JishoEntry } from '$lib/functions/jisho';
+  import {
+    addLookupHighlight,
+    removeLookupHighlight,
+    clearLookupHighlights,
+    lookupHighlights$
+  } from '$lib/data/store';
 
   export let word: string;
   export let x: number;
   export let y: number;
   export let wordTop: number;
   export let onClose: () => void;
+
+  $: isHighlighted = $lookupHighlights$.has(word);
+  $: highlightList = [...$lookupHighlights$];
+  let showAllHighlights = false;
+
+  function toggleHighlight() {
+    if (isHighlighted) removeLookupHighlight(word);
+    else addLookupHighlight(word);
+  }
 
   let results: JishoEntry[] = [];
   let loading = true;
@@ -95,10 +110,21 @@
     class="sticky top-0 flex items-center justify-between bg-gray-900 px-3 py-2 border-b border-gray-700"
   >
     <span class="font-bold text-yellow-300 text-[1.65rem]">{word}</span>
-    <button
-      class="ml-2 text-gray-400 hover:text-white leading-none text-[1.65rem]"
-      on:click={onClose}>✕</button
-    >
+    <div class="flex items-center gap-3">
+      <button
+        class="text-[1.05rem] px-2 py-0.5 rounded border border-gray-600 hover:bg-gray-800"
+        class:bg-[#e8560a]={isHighlighted}
+        class:border-[#e8560a]={isHighlighted}
+        class:text-white={isHighlighted}
+        class:text-gray-300={!isHighlighted}
+        on:click={toggleHighlight}
+      >
+        {isHighlighted ? 'Remove highlight' : 'Add highlight'}
+      </button>
+      <button class="text-gray-400 hover:text-white leading-none text-[1.65rem]" on:click={onClose}
+        >✕</button
+      >
+    </div>
   </div>
 
   <div class="px-3 py-2">
@@ -129,4 +155,39 @@
       {/each}
     {/if}
   </div>
+
+  {#if highlightList.length > 0}
+    <div class="sticky bottom-0 bg-gray-900 border-t border-gray-700 px-3 py-2 text-[1.05rem]">
+      <div class="flex items-center justify-between">
+        <button
+          class="text-gray-300 hover:text-white"
+          on:click={() => (showAllHighlights = !showAllHighlights)}
+        >
+          {highlightList.length} highlight{highlightList.length === 1 ? '' : 's'}
+          {showAllHighlights ? '▾' : '▸'}
+        </button>
+        {#if showAllHighlights}
+          <button class="text-gray-400 hover:text-red-300" on:click={() => clearLookupHighlights()}>
+            Clear all
+          </button>
+        {/if}
+      </div>
+      {#if showAllHighlights}
+        <div class="mt-2 flex flex-wrap gap-1.5">
+          {#each highlightList as w (w)}
+            <span
+              class="inline-flex items-center gap-1 rounded bg-[#e8560a] px-2 py-0.5 text-white"
+            >
+              {w}
+              <button
+                class="opacity-80 hover:opacity-100"
+                aria-label={`Remove ${w}`}
+                on:click={() => removeLookupHighlight(w)}>✕</button
+              >
+            </span>
+          {/each}
+        </div>
+      {/if}
+    </div>
+  {/if}
 </div>

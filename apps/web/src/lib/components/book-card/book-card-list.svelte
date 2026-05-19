@@ -41,7 +41,7 @@
       on:mouseleave={() => (hoveringBookId = undefined)}
     >
       <div
-        class="mdc-elevation--z1 hover:mdc-elevation--z8 mdc-elevation-transition relative overflow-hidden"
+        class="mdc-elevation--z1 hover:mdc-elevation--z8 mdc-elevation-transition relative overflow-hidden rounded-lg backdrop-blur-sm bg-white/20 border border-white/30"
         class:rounded-tl-xl={bookCard.id === currentBookId}
         class:mdc-elevation--z4={selectedBookIds.has(bookCard.id) || bookCard.id === currentBookId}
       >
@@ -65,7 +65,7 @@
           <Popover placement="right" fallbackPlacements={['bottom']} yOffset={5}>
             <Fa
               slot="icon"
-              class="mdc-elevation--z2 hover:mdc-elevation--z8 mdc-elevation-transition left-2 top-10 rounded-full bg-blue-400 text-xl text-white"
+              class="mdc-elevation--z2 hover:mdc-elevation--z8 mdc-elevation-transition left-2 top-10 rounded-full bg-orange-500 text-xl text-white"
               icon={faCircleInfo}
             />
             <div class="p-4" slot="content">

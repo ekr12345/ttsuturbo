@@ -692,6 +692,15 @@
 
 {$replicator$ ?? ''}
 
+<video
+  autoplay
+  muted
+  loop
+  playsinline
+  class="fixed inset-0 -z-10 h-full w-full object-cover"
+  src="/bg.mp4"
+></video>
+
 <div class="elevation-4 fixed inset-x-0 top-0 z-10">
   <BookManagerHeader
     hasBookOpened={!!$currentBookId$}
@@ -749,11 +758,6 @@
       on:removeBookClick={(ev) => removeBooks([ev.detail.id])}
     />
   {:else}
-    <div class="flex justify-center pt-44 text-gray-400 text-opacity-40">
-      <div class="flex w-3/6 justify-center xl:w-3/12">
-        <Fa icon={faUpload} style="width: 100%; height: auto" />
-      </div>
-    </div>
     <label class="fixed inset-0 z-0">
       <input
         type="file"

@@ -69,7 +69,8 @@
           ? 'You are already on the Summary Tab'
           : 'Switch to Summary Tab'}
         class={baseIconClasses}
-        class:bg-gray-900={$lastStatisticsTab$ === StatisticsTab.SUMMARY}
+        class:bg-white={$lastStatisticsTab$ === StatisticsTab.SUMMARY}
+        class:text-orange-600={$lastStatisticsTab$ === StatisticsTab.SUMMARY}
         on:click={() => ($lastStatisticsTab$ = StatisticsTab.SUMMARY)}
         on:keyup={dummyFn}
       >
@@ -82,7 +83,8 @@
           ? 'You are already on the Heatmap Tab'
           : 'Switch to Heatmap Tab'}
         class={baseIconClasses}
-        class:bg-gray-900={$lastStatisticsTab$ === StatisticsTab.OVERVIEW}
+        class:bg-white={$lastStatisticsTab$ === StatisticsTab.OVERVIEW}
+        class:text-orange-600={$lastStatisticsTab$ === StatisticsTab.OVERVIEW}
         on:click={() => ($lastStatisticsTab$ = StatisticsTab.OVERVIEW)}
         on:keyup={dummyFn}
       >
