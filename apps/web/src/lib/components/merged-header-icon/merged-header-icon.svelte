@@ -39,7 +39,7 @@
   }
 
   if (actionItems.length === 1 && actionItems[0].routeId) {
-    leavePageLink = actionItems[0].routeId;
+    leavePageLink = `${pagePath}${actionItems[0].routeId}`;
   }
 </script>
 
