@@ -17,10 +17,64 @@
   $: isHighlighted = $lookupHighlights$.has(word);
   $: highlightList = [...$lookupHighlights$];
   let showAllHighlights = false;
+  let exporting = false;
 
   function toggleHighlight() {
     if (isHighlighted) removeLookupHighlight(word);
     else addLookupHighlight(word);
+  }
+
+  async function exportHighlights() {
+    if (exporting || highlightList.length === 0) return;
+    exporting = true;
+    try {
+      const words = [...highlightList];
+      const entriesPerWord = await Promise.all(
+        words.map((w) => lookupWord(w).catch(() => [] as JishoEntry[]))
+      );
+
+      const date = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+      const lines: string[] = [`# Highlights — ${date}`, ''];
+
+      words.forEach((w, idx) => {
+        lines.push(`## ${w}`);
+        const entries = entriesPerWord[idx];
+        if (!entries || entries.length === 0) {
+          lines.push('', '_No dictionary entry found._', '');
+          return;
+        }
+        for (const entry of entries) {
+          const reading =
+            entry.reading && entry.reading !== entry.word ? ` 【${entry.reading}】` : '';
+          const pos = entry.partOfSpeech ? ` — _${entry.partOfSpeech}_` : '';
+          lines.push(`**${entry.word}**${reading}${pos}`);
+          for (const meaning of entry.meanings) {
+            lines.push(`- ${meaning}`);
+          }
+          lines.push('');
+        }
+      });
+
+      const stamp = new Date()
+        .toLocaleString('en-US', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        })
+        .replaceAll(/[/:, ]+/g, '-');
+
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/markdown' }));
+      a.rel = 'noopener';
+      a.download = `ttu-highlights-${stamp}.md`;
+      setTimeout(() => URL.revokeObjectURL(a.href), 1e4);
+      a.click();
+    } finally {
+      exporting = false;
+    }
   }
 
   let results: JishoEntry[] = [];
@@ -166,11 +220,23 @@
           {highlightList.length} highlight{highlightList.length === 1 ? '' : 's'}
           {showAllHighlights ? '▾' : '▸'}
         </button>
-        {#if showAllHighlights}
-          <button class="text-gray-400 hover:text-red-300" on:click={() => clearLookupHighlights()}>
-            Clear all
+        <div class="flex items-center gap-3">
+          <button
+            class="text-gray-400 hover:text-white disabled:opacity-50"
+            disabled={exporting}
+            on:click={exportHighlights}
+          >
+            {exporting ? 'Exporting…' : 'Export .md'}
           </button>
-        {/if}
+          {#if showAllHighlights}
+            <button
+              class="text-gray-400 hover:text-red-300"
+              on:click={() => clearLookupHighlights()}
+            >
+              Clear all
+            </button>
+          {/if}
+        </div>
       </div>
       {#if showAllHighlights}
         <div class="mt-2 flex flex-wrap gap-1.5">

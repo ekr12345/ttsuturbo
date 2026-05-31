@@ -90,17 +90,22 @@ function convertPrefixedDeclaration(declaration: Declaration) {
   return undefined;
 }
 
+// Heuristics for classifying a book's hard-coded font as sans-serif (gothic) so it
+// maps to the right user setting group. Mincho / serif / anything unknown falls
+// through to the serif group (Group 1), which is the default for body text.
+const sansSerifHints = /sans-serif|gothic|ゴシック|ゴチック|角ゴ/i;
+
 function convertFontFamily(declaration: Declaration) {
   if (declaration.property === 'font-family') {
-    let newValue: string = declaration.value;
-    if (newValue.includes('sans-serif')) {
-      newValue = `var(--font-family-sans-serif, Noto Sans JP, sans-serif)`;
-    } else if (newValue.includes('serif')) {
-      newValue = `var(--font-family-serif, Noto Serif JP, serif)`;
-    }
+    const original = declaration.value;
+    // Always route the declaration through the user's font setting so it wins,
+    // keeping the book's original font as the fallback if the setting is empty.
+    const group = sansSerifHints.test(original)
+      ? '--font-family-sans-serif'
+      : '--font-family-serif';
     return {
       key: declaration.property,
-      value: newValue
+      value: `var(${group}, ${original})`
     };
   }
   return undefined;
